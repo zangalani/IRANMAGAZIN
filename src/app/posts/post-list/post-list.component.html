@@ -14,11 +14,13 @@
                         {{ post.content }}
                     </div>
                 </div>
-                <div class="card-footer">
-                    <span class="float-right">Joined in 2013</span>
-                    <span><i class=""></i>75 Friends</span>
+                <div class="card-footer row">
+                    <a class="btn btn-primary col-md-5" [routerLink]="['/edit', post.id]">EDIT</a>
+                    <div class="col-md-2"></div>
+                    <button class="btn btn-danger col-md-5" (click)="onDelete(post.id)">DELETE</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<p class="info-text mat-body-1" *ngIf="posts.length <= 0">No posts added yet!</p>

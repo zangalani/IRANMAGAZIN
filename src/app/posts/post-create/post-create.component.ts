@@ -1,29 +1,68 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup,  FormBuilder,  Validators } from '@angular/forms';
+import { FormGroup,  FormBuilder,  Validators , NgForm } from '@angular/forms';
 import { PostService } from '../../shared/service/post.service';
+import { ActivatedRoute, Router, ParamMap  } from '@angular/router';
+import { Post } from '../../shared/models/post.model';
+
 @Component({
   selector: 'app-post-create',
   templateUrl: './post-create.component.html',
   styleUrls: ['./post-create.component.scss']
 })
+
+
 export class PostCreateComponent implements OnInit {
 
-  angForm: FormGroup;
-  constructor(private fb: FormBuilder, private bs: PostService) {
-    this.createForm();
+
+  enteredTitle = '';
+  enteredContent = '';
+  post: Post;
+  isLoading = false;
+  private mode = 'create';
+  private postId: string;
+
+  constructor(public postsService: PostService,
+              private router: Router,
+              public  route: ActivatedRoute
+    ) {}
+
+    ngOnInit() {
+      this.route.paramMap.subscribe((paramMap: ParamMap) => {
+        if (paramMap.has('postId')) {
+          this.mode = 'edit';
+          this.postId = paramMap.get('postId');
+          this.isLoading = true;
+          this.postsService.getPost(this.postId).subscribe(postData => {
+            this.isLoading = false;
+            this.post = {id: postData._id, title: postData.title, content: postData.content};
+          });
+        } else {
+          this.mode = 'create';
+          this.postId = null;
+        }
+      });
+    }
+
+  onSavePost(form: NgForm) {
+    if (form.invalid) {
+      return;
+    }
+    this.isLoading = true;
+    if (this.mode === 'create') {
+      this.postsService.addPost(form.value.title, form.value.content);
+    } else {
+      this.postsService.updatePost(
+        this.postId,
+        form.value.title,
+        form.value.content
+      );
+    }
+    form.resetForm();
+    this.router.navigate(['/post']);
   }
 
-  createForm() {
-    this.angForm = this.fb.group({
-      post_title: ['', Validators.required ],
-      post_content: ['', Validators.required ],
 
-    });
-  }
-  addPost({ post_title, post_content }: { post_title; post_content; }) {
-    this.bs.addpost(post_title,  post_content);
-  }
-  ngOnInit() {
-  }
+
+
 
 }
